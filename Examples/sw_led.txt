@@ -1,0 +1,4 @@
+P1_3 Switch to groung via 1k and pullup 10k.
+P1_2 LED Blue to GND via 470ohms
+P0_7 LED Green to GND via 470ohms
+P0_5 switch to groung via 1k and pullup 10k.

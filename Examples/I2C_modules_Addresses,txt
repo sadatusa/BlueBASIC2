@@ -1,0 +1,46 @@
+================================================================================
+BlueBASIC I2C Module Address Reference & Conversion Guide
+================================================================================
+
+CRITICAL RULE FOR BLUEBASIC:
+BlueBASIC transmits the first byte directly over the I2C wire and masks bit 0 for R/W:
+  BlueBASIC Address = (7-Bit I2C Address << 1) or (7-Bit Address * 2)
+
+--------------------------------------------------------------------------------
+Module / Chip Name            7-bit Hex   7-bit Dec   BlueBASIC Hex   BlueBASIC Dec
+--------------------------------------------------------------------------------
+Tiny RTC DS1307 RTC           0x68        104         0xD0            208
+Tiny RTC AT24C32 EEPROM       0x50        80          0xA0            160
+  (Address pins A0=A1=A2=GND)
+AT24C32 (A0=VCC, A1=A2=GND)   0x51        81          0xA2            162
+AT24C32 (A0=GND, A1=VCC, A2)  0x52        82          0xA4            164
+AT24C32 (A0=A1=VCC, A2=GND)   0x53        83          0xA6            166
+
+DS3231 High-Precision RTC     0x68        104         0xD0            208
+AT24C02 / 24C04 / 24C16       0x50        80          0xA0            160
+
+BMP180 / BMP280 / BME280:
+  SDO pulled to GND           0x76        118         0xEC            236
+  SDO pulled to VDD (default) 0x77        119         0xEE            238
+
+MPU-6050 / MPU-6500 (6-Axis IMU):
+  AD0 pulled to GND (default) 0x68        104         0xD0            208
+  AD0 pulled to VDD           0x69        105         0xD2            210
+
+SSD1306 / SH1106 OLED Display:
+  SA0 pulled to GND (default) 0x3C        60          0x78            120
+  SA0 pulled to VDD           0x3D        61          0x7A            122
+
+AHT20 Humidity & Temp Sensor  0x38        56          0x70            112
+PCF8574 8-Bit I/O Expander    0x20        32          0x40            64
+PCF8574A 8-Bit I/O Expander   0x38        56          0x70            112
+LM75A Temperature Sensor      0x48        72          0x90            144
+
+--------------------------------------------------------------------------------
+EEPROM ADDRESSING NOTE:
+- 24C02 (256 bytes): Uses 1-byte word address (0 to 255).
+- 24C32 (4096 bytes): Uses 2-byte word address (Address_High, Address_Low).
+  Example for Address 0x0100: High Byte = 1, Low Byte = 0
+  Write syntax: I2C WRITE 160, 1, 0, <data...>
+  Read syntax:  I2C WRITE 160, 1, 0, READ <var/array>
+================================================================================

@@ -1,0 +1,85 @@
+10 REM ========================================================
+20 REM CC2541 HARDWARE I2C (HWI2C) MPU-6050 6-AXIS IMU + TEMP
+30 REM GY-521 MODULE (AD0 = NC, 7-BIT ADDR 104 / 0x68)
+40 REM ========================================================
+50 HWI2C MASTER 100
+60 PRINT "========================================"
+70 PRINT "MPU-6050 (GY-521) REAL-TIME SENSOR"
+80 PRINT "========================================"
+90 REM 1. WAKE UP MPU-6050 (SET CLK TO PLL X-GYRO)
+100 HWI2C WRITE 104, 107, 1
+110 FOR I = 1 TO 500
+115 NEXT I
+120 REM 2. CONFIGURE DLPF (42 HZ LOW-PASS FILTER)
+130 HWI2C WRITE 104, 26, 3
+140 REM 3. CONFIGURE SAMPLE RATE DIVIDER (125 HZ)
+150 HWI2C WRITE 104, 25, 7
+160 REM 4. CONFIGURE GYRO (+-250 DEG/S) & ACCEL (+-2G)
+170 HWI2C WRITE 104, 27, 0
+180 HWI2C WRITE 104, 28, 0
+190 REM 5. VERIFY WHO_AM_I REGISTER (REG 117 = 0x75)
+200 DIM W(1)
+210 HWI2C WRITE 104, 117, READ W
+220 PRINT "CHIP WHO_AM_I ID: ", W(0)
+230 IF W(0) != 104
+240   PRINT "WARNING: UNEXPECTED CHIP ID (EXPECTED 104)!"
+250 END
+260 PRINT "STARTING REAL-TIME SENSOR STREAM..."
+270 PRINT "========================================"
+280 DIM D(14)
+290 REM ------------------------------------------------
+300 REM MAIN ACQUISITION LOOP
+310 REM ------------------------------------------------
+320 HWI2C WRITE 104, 59, READ D
+330 REM CONVERT ACCELEROMETER (REG 59..64)
+340 A = (D(0) << 8) | D(1)
+350 IF D(0) & 128
+360   A = A - 65536
+370 END
+380 B = (D(2) << 8) | D(3)
+390 IF D(2) & 128
+400   B = B - 65536
+410 END
+420 C = (D(4) << 8) | D(5)
+430 IF D(4) & 128
+440   C = C - 65536
+450 END
+460 REM CONVERT TEMPERATURE (REG 65..66)
+470 T = (D(6) << 8) | D(7)
+480 IF D(6) & 128
+490   T = T - 65536
+500 END
+510 E = ((T * 100) / 340) + 3653
+520 U = E / 100
+530 V = E % 100
+540 IF V < 0
+550   V = 0 - V
+560 END
+570 REM CONVERT GYROSCOPE (REG 67..72)
+580 X = (D(8) << 8) | D(9)
+590 IF D(8) & 128
+600   X = X - 65536
+610 END
+620 Y = (D(10) << 8) | D(11)
+630 IF D(10) & 128
+640   Y = Y - 65536
+650 END
+660 Z = (D(12) << 8) | D(13)
+670 IF D(12) & 128
+680   Z = Z - 65536
+690 END
+700 REM CALCULATE MILLI-G (mg) AND DEG/S
+710 J = (A * 1000) / 16384
+720 K = (B * 1000) / 16384
+730 L = (C * 1000) / 16384
+740 P = X / 131
+750 Q = Y / 131
+760 R = Z / 131
+770 REM DISPLAY SENSOR TELEMETRY
+780 PRINT "ACCEL (mg):   X=", J, "  Y=", K, "  Z=", L
+790 PRINT "GYRO (deg/s): X=", P, "  Y=", Q, "  Z=", R
+800 PRINT "TEMP:         ", U, ".", V, " C"
+810 PRINT "----------------------------------------"
+820 FOR I = 1 TO 4000
+830 NEXT I
+840 GOTO 320
